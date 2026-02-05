@@ -1,9 +1,11 @@
-# client.py - Test MCP Client (Fixed for latest MCP version)
+# client.py - Test MCP Client
 """
 Test client for Qubrid MCP Server
 """
 
 import asyncio
+import sys
+from pathlib import Path
 from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp import ClientSession
 
@@ -13,10 +15,24 @@ async def main():
     
     print("🔌 Connecting to Qubrid MCP Server...\n")
     
+    # Get absolute path to server.py
+    # This works whether running from root or src/
+    if Path("src/server.py").exists():
+        # Running from project root
+        server_path = Path("src/server.py").absolute()
+    elif Path("server.py").exists():
+        # Running from src/ directory
+        server_path = Path("server.py").absolute()
+    else:
+        # Find it relative to this file
+        server_path = (Path(__file__).parent / "server.py").absolute()
+    
+    print(f"�� Server path: {server_path}")
+    
     # Create server parameters
     server_params = StdioServerParameters(
         command="uv",
-        args=["run", "server.py"]
+        args=["run", str(server_path)]
     )
     
     # Connect to server
@@ -38,12 +54,11 @@ async def main():
                 print(f"   URI: {resource.uri}")
                 print(f"   Type: {resource.mimeType}\n")
             
-            # Test 2: Read a Resource (FIXED)
+            # Test 2: Read a Resource
             print("=" * 60)
             print("TEST 2: Read Model List Resource")
             print("=" * 60)
             try:
-                # Use the uri directly, not wrapped in a request object
                 content = await session.read_resource(uri="qubrid://models/list")
                 print(content.contents[0].text)
             except Exception as e:
@@ -59,7 +74,7 @@ async def main():
                 print(f"🔧 {tool.name}")
                 print(f"   {tool.description}\n")
             
-            # Test 4: Call a Tool (FIXED)
+            # Test 4: Call a Tool
             print("=" * 60)
             print("TEST 4: Query a Model")
             print("=" * 60)

@@ -1,4 +1,4 @@
-# test_quick.py - Updated with correct endpoint
+# test_quick.py - Quick validation
 """
 Quick tests to validate setup
 """
@@ -67,7 +67,6 @@ if api_key:
         import aiohttp
         try:
             async with aiohttp.ClientSession() as session:
-                # Test with a simple query
                 async with session.post(
                     f"{base_url}/chat/completions",
                     headers={
@@ -83,7 +82,6 @@ if api_key:
                     timeout=aiohttp.ClientTimeout(total=10)
                 ) as response:
                     if response.status == 200:
-                        data = await response.json()
                         print(f"✅ API Connected successfully")
                         print(f"✅ Test response received")
                         return True
@@ -106,12 +104,12 @@ if all_good:
     print("✅ ALL TESTS PASSED")
     print("=" * 60)
     print("\nNext steps:")
-    print("1. Run server: uv run server.py")
-    print("2. Run client: uv run client.py")
+    print("1. Run server: uv run src/server.py")
+    print("2. Run client: uv run src/client.py")
     sys.exit(0)
 else:
     print("❌ SOME TESTS FAILED")
     print("=" * 60)
     print("\nFix errors above, then rerun:")
-    print("uv run test_quick.py")
+    print("uv run src/test_quick.py")
     sys.exit(1)
