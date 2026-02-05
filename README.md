@@ -1,202 +1,299 @@
 # MCP Learning Project: Qubrid API Server
 
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![MCP](https://img.shields.io/badge/MCP-Anthropic-purple.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+
+---
 
 ## 🎯 Project Overview
 
-This project demonstrates the implementation of an MCP (Model Context Protocol) server that exposes Qubrid's AI models through a standardized interface. Built as a learning exercise to understand:
+A hands-on implementation of an **MCP (Model Context Protocol) server** that exposes Qubrid's AI models through a standardized interface. This project demonstrates:
 
-- MCP architecture (Resources, Tools, Prompts)
-- Async programming patterns with Python
-- Real API integration with authentication
-- Client-server communication
+- ✅ **MCP Architecture** - Resources, Tools, and Prompts
+- ✅ **Async Programming** - Parallel execution with `asyncio.gather()`
+- ✅ **API Integration** - Real-world authentication and error handling
+- ✅ **Clean Code** - Professional project structure and documentation
 
-## 🚀 Features
+### What is MCP?
 
-### MCP Primitives Implemented
+MCP is like **USB for AI applications** - a universal protocol that standardizes how AI systems connect to data sources and tools. Just as USB works with any device, MCP works with any AI client (Claude, LangGraph, custom apps).
 
-- **Resources**: Read-only data access
-  - `qubrid://models/list` - Available AI models
-  - `qubrid://info/api` - API configuration
+---
 
-- **Tools**: Executable functions
-  - `query_model` - Query any Qubrid model with a prompt
-  - `compare_models` - Compare responses from multiple models (parallel execution)
+## 🎨 Features
 
-- **Prompts**: Reusable templates
-  - `test_model` - Quick test prompt template
-  - `explain_concept` - Concept explanation template
+### 1. Resources (Read-Only Data)
 
-### Key Technical Highlights
-
-✅ **Async Patterns**: Parallel model queries using `asyncio.gather()`  
-✅ **API Integration**: Qubrid platform authentication and chat completions  
-✅ **Error Handling**: Robust error handling and debugging  
-✅ **UV Package Manager**: Modern Python dependency management  
-✅ **Clean Architecture**: Separation of concerns (server, client, tests)
-
-
-## 🎮 Usage
-
-### Start the MCP Server
-
-**Terminal 1:**
-```bash
-uv run server.py
-```
-
-Output:
-```
-============================================================
-🚀 QUBRID MCP SERVER
-============================================================
-📡 API: https://platform.qubrid.com/api/v1/qubridai
-🔑 Key: ✅ Configured
-============================================================
-
-✅ Server ready - waiting for connections...
-```
-
-### Run the Test Client
-
-**Terminal 2:**
-```bash
-uv run client.py
-```
-
-The client will demonstrate all MCP primitives:
-1. List available resources
-2. Read resource data
-3. List available tools
-4. Execute tools (query models)
-5. Compare multiple models (async parallel execution)
-6. Use prompt templates
-
-## 🧠 Key Concepts Learned
-
-### 1. MCP Architecture
+Resources are like a **library catalog** - you can see what's available and read it.
 ```python
-# Resources - Read-only data
-@app.list_resources()
-async def list_resources():
-    return [Resource(...)]
+# Available resources:
+- qubrid://models/list    # List of AI models
+- qubrid://info/api       # API configuration
+```
 
-# Tools - Executable functions
+**Example Usage:**
+```python
+# Client requests resource
+content = await session.read_resource("qubrid://models/list")
+# Returns JSON with all available models
+```
+
+---
+
+### 2. Tools (Executable Functions)
+
+Tools are like **API endpoints** - you call them with parameters and get results.
+```python
+# Available tools:
+- query_model       # Query any Qubrid model
+- compare_models    # Compare multiple models in parallel
+```
+
+**Example Usage:**
+```python
+# Query single model
+result = await session.call_tool("query_model", {
+    "prompt": "Explain quantum computing",
+    "model": "openai/gpt-oss-20b"
+})
+
+# Compare multiple models (runs in parallel!)
+comparison = await session.call_tool("compare_models", {
+    "models": ["openai/gpt-oss-20b", "meta-llama/Llama-3.3-70B-Instruct"],
+    "prompt": "What is machine learning?"
+})
+```
+
+---
+
+### 3. Prompts (Reusable Templates)
+
+Prompts are like **email templates** - pre-defined formats you can customize.
+```python
+# Available prompts:
+- test_model         # Quick test prompt
+- explain_concept    # Concept explanation template
+```
+
+**Example Usage:**
+```python
+# Get prompt template
+prompt = await session.get_prompt("explain_concept", {
+    "concept": "async programming"
+})
+```
+
+---
+
+## 🧠 Key Concepts Explained
+
+### Async Programming: Sequential vs Parallel
+
+**Without Async (Slow):**
+```python
+# Each query waits for the previous one
+result1 = query_model("model1", "prompt")  # 3 seconds
+result2 = query_model("model2", "prompt")  # 3 seconds
+result3 = query_model("model3", "prompt")  # 3 seconds
+# Total: 9 seconds ⏰
+```
+
+**With Async (Fast):**
+```python
+# All queries start simultaneously
+tasks = [
+    query_model("model1", "prompt"),
+    query_model("model2", "prompt"),
+    query_model("model3", "prompt")
+]
+results = await asyncio.gather(*tasks)
+# Total: 3 seconds ⚡ (3x faster!)
+```
+
+### Real Code Example
+```python
+# From src/server.py - Compare Models Tool
 @app.call_tool()
-async def call_tool(name, arguments):
-    if name == "query_model":
-        return await query_model(...)
+async def call_tool(name: str, arguments: dict):
+    if name == "compare_models":
+        models = arguments["models"]
+        prompt = arguments["prompt"]
+        
+        # Create tasks for all models
+        tasks = [query_model(model, prompt) for model in models]
+        
+        # Execute ALL in parallel - this is the magic! 🪄
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Format and return comparison
+        return format_comparison(models, responses)
 ```
 
-### 2. Async Patterns
-```python
-# Sequential (SLOW)
-result1 = await query_model("model1", prompt)  # 3s
-result2 = await query_model("model2", prompt)  # 3s
-# Total: 6 seconds
+---
 
-# Parallel (FAST)
-results = await asyncio.gather(
-    query_model("model1", prompt),
-    query_model("model2", prompt)
-)
-# Total: 3 seconds
-```
+## 📊 Performance Comparison
 
-### 3. API Integration
-```python
-async with aiohttp.ClientSession() as session:
-    async with session.post(
-        f"{QUBRID_BASE_URL}/chat/completions",
-        headers={"Authorization": f"Bearer {QUBRID_API_KEY}"},
-        json={"model": model, "messages": messages}
-    ) as response:
-        return await response.json()
-```
-
-## 🎯 Applications
-
-### Educational Use
-- Foundation for Qubrid educational notebooks
-- LangGraph integration examples
-- Multi-agent system demonstrations
-
-### Production Patterns
-- Reusable MCP server for Qubrid API
-- Standardized interface for any MCP client
-- Template for building custom MCP servers
-
-### Performance Optimization
-- Parallel model queries reduce latency
-- Can be applied to multi-agent systems like AutoDev
-- Demonstrates async best practices
-
-## 📊 Performance
-
-**Sequential vs Parallel Comparison:**
-
-| Models | Sequential | Parallel | Improvement |
-|--------|-----------|----------|-------------|
-| 2      | 6s        | 3s       | 2x faster   |
-| 3      | 9s        | 3s       | 3x faster   |
-| 5      | 15s       | 3s       | 5x faster   |
+| Number of Models | Sequential | Parallel (Async) | Speed Gain |
+|-----------------|-----------|------------------|------------|
+| 2 models        | 6 seconds | 3 seconds        | **2x faster** |
+| 3 models        | 9 seconds | 3 seconds        | **3x faster** |
+| 5 models        | 15 seconds| 3 seconds        | **5x faster** |
 
 *Assuming 3 seconds per model query*
+
+---
+
+## 💡 Use Cases
+
+### 1. Educational Notebooks
+```python
+# Before: Manual API calls in every notebook
+response = requests.post(
+    "https://platform.qubrid.com/api/...",
+    headers={"Authorization": "Bearer ..."},
+    json={...}
+)
+
+# After: Simple MCP interface
+async with qubrid_server() as session:
+    result = await session.call_tool("query_model", {
+        "prompt": "Explain RAG"
+    })
+```
+
+**Benefits:**
+- ✅ Cleaner notebook code
+- ✅ Reusable across all notebooks
+- ✅ Centralized configuration
+- ✅ Easy to update
+
+---
+
+### 2. Multi-Agent Systems
+```python
+# AutoDev project optimization
+async def run_agents_parallel():
+    async with qubrid_server() as session:
+        # Run 7 agents simultaneously instead of sequentially
+        tasks = [
+            session.call_tool("code_agent", {...}),
+            session.call_tool("review_agent", {...}),
+            session.call_tool("test_agent", {...}),
+            # ... more agents
+        ]
+        results = await asyncio.gather(*tasks)
+    return results
+
+# Result: 13 minutes → 5 minutes! 🚀
+```
+
+---
+
+### 3. Research & Analysis
+```python
+# Compare multiple models on same task
+async def research_topic(topic):
+    models = [
+        "openai/gpt-oss-20b",
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "Qwen/Qwen2.5-72B-Instruct"
+    ]
+    
+    # Get all perspectives simultaneously
+    comparison = await session.call_tool("compare_models", {
+        "models": models,
+        "prompt": f"Analyze: {topic}"
+    })
+    
+    return comparison
+```
+
+---
+
+## 🔧 API Reference
+
+### Server Endpoints
+
+#### Resources
+
+| URI | Description | Returns |
+|-----|-------------|---------|
+| `qubrid://models/list` | Available models | JSON array of models |
+| `qubrid://info/api` | API configuration | JSON with endpoint info |
+
+#### Tools
+
+**query_model**
+```python
+Arguments:
+  - prompt: str (required)        # Question/instruction for model
+  - model: str (optional)         # Model ID, default: "openai/gpt-oss-20b"
+  - max_tokens: int (optional)    # Max response length, default: 256
+
+Returns:
+  - Formatted response with model output
+```
+
+**compare_models**
+```python
+Arguments:
+  - prompt: str (required)        # Same prompt for all models
+  - models: list[str] (required)  # List of model IDs to compare
+
+Returns:
+  - Side-by-side comparison of all model responses
+```
+
+---
 
 ## 📁 Project Structure
 ```
 mcp-learning/
-├── .env.example          # Environment template
-├── .gitignore           # Git ignore rules
-├── README.md            # This file
-├── pyproject.toml       # UV dependencies
-├── server.py            # MCP server (250 lines)
-├── client.py            # Test client (80 lines)
-└── test_quick.py        # Validation tests (60 lines)
+├── 📁 src/                      # All Python source code
+│   ├── __init__.py              # Package marker
+│   ├── server.py                # MCP server (250 lines)
+│   ├── client.py                # Test client (100 lines)
+│   └── test_quick.py            # Validation tests (80 lines)
+│
+├── 📄 README.md                 # This file
+├── 📄 .env.example              # Environment template
+├── 🔒 .env                      # Your secrets (not in git)
+├── 📄 .gitignore                # Git ignore rules
+└── 📄 pyproject.toml            # Dependencies (UV config)
 ```
 
-## 📋 Requirements
+---
+
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Python 3.10+
-- UV package manager
-- Qubrid API key
+- [UV package manager](https://github.com/astral-sh/uv)
+- Qubrid API key ([Get one here](https://platform.qubrid.com))
 
-## 🛠️ Installation
-
-### 1. Clone the Repository
+### Installation
 ```bash
+# 1. Clone repository
 git clone https://github.com/aryadoshii-qubrid/mcp-learning.git
 cd mcp-learning
-```
 
-### 2. Install Dependencies
-```bash
-# Install UV if not already installed
+# 2. Install UV (if not installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install project dependencies
+# 3. Install dependencies
 uv sync
-```
 
-### 3. Configure API Key
-```bash
-# Copy example env file
+# 4. Configure API key
 cp .env.example .env
-
-# Edit .env and add your Qubrid API key
-nano .env
+nano .env  # Add your QUBRID_API_KEY
 ```
 
-Your `.env` should look like:
+### Run Tests
 ```bash
-QUBRID_API_KEY=qubrid_sk_your_actual_key_here
-QUBRID_BASE_URL=https://platform.qubrid.com/api/v1/qubridai
-```
-
-## 🧪 Testing
-
-Run the validation tests:
-```bash
-uv run test_quick.py
+uv run src/test_quick.py
 ```
 
 Expected output:
@@ -206,42 +303,67 @@ Expected output:
 ============================================================
 ```
 
-## 📚 Resources
+### Start Server & Client
 
-- [MCP Documentation](https://modelcontextprotocol.io/)
-- [Qubrid Platform](https://platform.qubrid.com/)
-- [Python Asyncio Guide](https://docs.python.org/3/library/asyncio.html)
-- [UV Package Manager](https://github.com/astral-sh/uv)
+**Terminal 1 - Start Server:**
+```bash
+uv run src/server.py
+```
 
-## 🤝 Contributing
-
-This is a learning project, but suggestions and improvements are welcome!
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/improvement`)
-3. Commit changes (`git commit -am 'Add improvement'`)
-4. Push to branch (`git push origin feature/improvement`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is for educational purposes. Feel free to use and modify as needed.
-
-## 👨‍💻 Author
-
-**Arya Doshi**  
-Generative AI Engineer @ QubridAI  
-Final Year Student, VIT Pune
-
-**LinkedIn:** [Connect with Arya](https://linkedin.com/in/arya-doshi)  
-**GitHub:** [@aryadoshii-qubrid](https://github.com/aryadoshii-qubrid)
-
-## 🙏 Acknowledgments
-
-- QubridAI team for platform access
-- Anthropic for MCP specification
-- Python async community for excellent documentation
+**Terminal 2 - Run Client:**
+```bash
+uv run src/client.py
+```
 
 ---
 
-**⭐ If this helped you learn MCP, consider starring the repo!**
+## 🤝 Contributing
+
+Contributions welcome! This is a learning project, but improvements are appreciated.
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/improvement`)
+3. Commit changes (`git commit -am 'Add improvement'`)
+4. Push to branch (`git push origin feature/improvement`)
+5. Open Pull Request
+
+### Development Setup
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/mcp-learning.git
+cd mcp-learning
+
+# Install dependencies
+uv sync
+
+# Create feature branch
+git checkout -b feature/my-improvement
+
+# Make changes and test
+uv run src/test_quick.py
+
+# Commit and push
+git add .
+git commit -m "Description of changes"
+git push origin feature/my-improvement
+```
+
+---
+
+## 📄 License
+
+This project is for educational purposes. Feel free to use, modify, and learn from it.
+
+---
+
+
+## ⭐ Star This Repo!
+
+If this project helped you learn MCP and async programming, consider:
+- ⭐ Starring the repository
+- 🍴 Forking for your own experiments
+- 📢 Sharing with others learning AI engineering
+
+---
+
+**Happy Learning! 🎉**
