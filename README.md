@@ -1,9 +1,5 @@
 # MCP Learning Project: Qubrid API Server
 
-**Author:** Arya Doshi  
-**Organization:** QubridAI  
-**Date:** February 2026  
-**Purpose:** Learning Model Context Protocol (MCP) with async patterns and Qubrid API integration
 
 ## 🎯 Project Overview
 
@@ -38,57 +34,6 @@ This project demonstrates the implementation of an MCP (Model Context Protocol) 
 ✅ **UV Package Manager**: Modern Python dependency management  
 ✅ **Clean Architecture**: Separation of concerns (server, client, tests)
 
-## 📋 Requirements
-
-- Python 3.10+
-- UV package manager
-- Qubrid API key
-
-## 🛠️ Installation
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/aryadoshii-qubrid/mcp-learning.git
-cd mcp-learning
-```
-
-### 2. Install Dependencies
-```bash
-# Install UV if not already installed
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install project dependencies
-uv sync
-```
-
-### 3. Configure API Key
-```bash
-# Copy example env file
-cp .env.example .env
-
-# Edit .env and add your Qubrid API key
-nano .env
-```
-
-Your `.env` should look like:
-```bash
-QUBRID_API_KEY=qubrid_sk_your_actual_key_here
-QUBRID_BASE_URL=https://platform.qubrid.com/api/v1/qubridai
-```
-
-## 🧪 Testing
-
-Run the validation tests:
-```bash
-uv run test_quick.py
-```
-
-Expected output:
-```
-============================================================
-✅ ALL TESTS PASSED
-============================================================
-```
 
 ## 🎮 Usage
 
@@ -125,18 +70,6 @@ The client will demonstrate all MCP primitives:
 4. Execute tools (query models)
 5. Compare multiple models (async parallel execution)
 6. Use prompt templates
-
-## 📁 Project Structure
-```
-mcp-learning/
-├── .env.example          # Environment template
-├── .gitignore           # Git ignore rules
-├── README.md            # This file
-├── pyproject.toml       # UV dependencies
-├── server.py            # MCP server (250 lines)
-├── client.py            # Test client (80 lines)
-└── test_quick.py        # Validation tests (60 lines)
-```
 
 ## 🧠 Key Concepts Learned
 
@@ -209,34 +142,68 @@ async with aiohttp.ClientSession() as session:
 
 *Assuming 3 seconds per model query*
 
-## 🔧 Troubleshooting
-
-### API Connection Fails
-```bash
-# Check your API key
-cat .env | grep QUBRID_API_KEY
-
-# Test API directly
-curl -X POST https://platform.qubrid.com/api/v1/qubridai/chat/completions \
-  -H "Authorization: Bearer YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"test"}]}'
+## 📁 Project Structure
+```
+mcp-learning/
+├── .env.example          # Environment template
+├── .gitignore           # Git ignore rules
+├── README.md            # This file
+├── pyproject.toml       # UV dependencies
+├── server.py            # MCP server (250 lines)
+├── client.py            # Test client (80 lines)
+└── test_quick.py        # Validation tests (60 lines)
 ```
 
-### Import Errors
+## 📋 Requirements
+
+- Python 3.10+
+- UV package manager
+- Qubrid API key
+
+## 🛠️ Installation
+
+### 1. Clone the Repository
 ```bash
-# Reinstall dependencies
-uv sync --reinstall
+git clone https://github.com/aryadoshii-qubrid/mcp-learning.git
+cd mcp-learning
 ```
 
-### Server Not Responding
+### 2. Install Dependencies
 ```bash
-# Check if server is running
-ps aux | grep server.py
+# Install UV if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Restart server
-pkill -f server.py
-uv run server.py
+# Install project dependencies
+uv sync
+```
+
+### 3. Configure API Key
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Edit .env and add your Qubrid API key
+nano .env
+```
+
+Your `.env` should look like:
+```bash
+QUBRID_API_KEY=qubrid_sk_your_actual_key_here
+QUBRID_BASE_URL=https://platform.qubrid.com/api/v1/qubridai
+```
+
+## 🧪 Testing
+
+Run the validation tests:
+```bash
+uv run test_quick.py
+```
+
+Expected output:
+```
+============================================================
+✅ ALL TESTS PASSED
+============================================================
 ```
 
 ## 📚 Resources
